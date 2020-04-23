@@ -1,8 +1,11 @@
+import heapq
+
 class Supermarket:
     AmountCustomer = 0
     Time = 0
     RespawnA = 200
     RespawnB = 60
+
 
     # storetime
     BakerTime = 10
@@ -15,7 +18,6 @@ class Supermarket:
     PurchaseTypB = ([30, 30, 20], [5, 20, 20], [2, 3, 3])
 
 
-
 def begin():
 
 def move():
@@ -23,4 +25,18 @@ def move():
 def purchase():
 
 def wait():
+
+
+
+class Eventlist:
+    SimTime = 0
+    EventNum = 0
+    li = [0, 2, 3]
+    heapq.heapify(li)
+
+    def event(self):
+
+    def push(self):
+
+    def start(self):
 
