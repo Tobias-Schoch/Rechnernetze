@@ -1,5 +1,6 @@
 import heapq
 
+
 # define store attributes
 class Store:
     # init store
@@ -8,11 +9,13 @@ class Store:
         self.workTime = workTime
         self.queue = list()
         self.working = False
+
     # write in station file who get served at which time on which store
     def save(self, timeFromStart, activity, customer):
         station_file = open("supermarkt_station.txt", "a")
         station_file.write(str(timeFromStart) + ':' + self.name + ' ' + activity + ' customer ' + customer.name + '\n')
         station_file.close()
+
 
 # define customer attributes
 class Customer:
@@ -36,7 +39,24 @@ class Customer:
 
 
 class eventOriented:
+
     def __init__(self, timeFromStart, eventnumber):
+        # init counter for calculations for the statistics
+        self.count_customer_baker = 0
+        self.count_customer_butcher = 0
+        self.count_customer_cheese = 0
+        self.count_customer_checkout = 0
+        self.drop_customer_baker = 0
+        self.drop_customer_butcher = 0
+        self.drop_customer_cheese = 0
+        self.drop_customer_checkout = 0
+        self.count_A = 0
+        self.count_B = 0
+        self.spawn_times = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 0, 61, 121, 181, 241, 301, 361, 421,
+                            481, 541, 601, 661, 721, 781, 841, 901, 961, 1021, 1081, 1141, 1201, 1261, 1321, 1381, 1441,
+                            1501, 1561, 1621, 1681, 1741, 1801, 1861, 1921, 1981, 2041]
+        self.go_counter = 0
+        self.add_average_counter = 0
         # init heap
         self.heapq = []
         # init time
@@ -68,6 +88,10 @@ class eventOriented:
             self.push((timer, 0, 'B', Customer(customer_typ + str(customerId))))
             timer += recurringTime
             customerId += 1
+            if (customer_typ == "A"):
+                self.count_A = self.count_A + 1
+            elif (customer_typ == "B"):
+                self.count_B += 1
 
     def open(self):
         time = 0
@@ -84,20 +108,27 @@ class eventOriented:
                 if customer.name[0] == 'A':
                     if store_location == 0:
                         self.arrive(timeFromStart, store_location, customer, self.baker)
+                        self.count_customer_baker += 1
                     elif store_location == 1:
                         self.arrive(timeFromStart, store_location, customer, self.butcher)
+                        self.count_customer_butcher += 1
                     elif store_location == 2:
                         self.arrive(timeFromStart, store_location, customer, self.cheese)
+                        self.count_customer_cheese += 1
                     else:
                         self.arrive(timeFromStart, store_location, customer, self.checkout)
+                        self.count_customer_checkout += 1
                 # purchase order for customer type B
                 else:
                     if store_location == 0:
                         self.arrive(timeFromStart, store_location, customer, self.butcher)
+                        self.count_customer_butcher += 1
                     elif store_location == 1:
                         self.arrive(timeFromStart, store_location, customer, self.checkout)
+                        self.count_customer_checkout += 1
                     else:
                         self.arrive(timeFromStart, store_location, customer, self.baker)
+                        self.count_customer_baker += 1
             # if customer is ready to leave
             elif event[0] == 'C':
                 # purchase order for customer type A
@@ -111,14 +142,44 @@ class eventOriented:
                         self.leave(timeFromStart, store_location, customer, self.cheese)
                     else:
                         self.leave(timeFromStart, store_location, customer, self.checkout)
+                        self.add_average_counter = self.add_average_counter + (timeFromStart - self.spawn_times[self.go_counter])
+                        self.go_counter += 1
+
                 # purchase order for customer type B
                 else:
                     if store_location == 0:
                         self.leave(timeFromStart, store_location, customer, self.butcher)
                     elif store_location == 1:
                         self.leave(timeFromStart, store_location, customer, self.checkout)
+                        self.add_average_counter = self.add_average_counter + (timeFromStart - self.spawn_times[self.go_counter])
+                        self.go_counter += 1
                     else:
                         self.leave(timeFromStart, store_location, customer, self.baker)
+        count_C = self.count_A + self.count_B
+        print("Simulationsende: " + str(timeFromStart) + "s")
+        print("Anzahl Kunden: " + str(count_C))
+        percentage_butcher = 100 / self.count_customer_butcher * self.drop_customer_butcher
+        percentage_baker = 100 / self.count_customer_baker * self.drop_customer_baker
+        percentage_cheese = 100 / self.count_customer_cheese * self.drop_customer_cheese
+        percentage_checkout = 100 / self.count_customer_checkout * self.drop_customer_checkout
+        all_skipped = count_C - (self.drop_customer_butcher + self.drop_customer_baker + self.drop_customer_cheese + self.drop_customer_checkout)
+        average = self.add_average_counter / count_C
+        print("Mittlere Einkaufsdauer: " + str(average))
+        print("Anzahl vollständige Einkäufe: " + str(all_skipped))
+        print("Drop percentage at Bäcker: " + str(percentage_baker))
+        print("Drop percentage at Metzger: " + str(percentage_butcher))
+        print("Drop percentage at Käse: " + str(percentage_cheese))
+        print("Drop percentage at Kasse: " + str(percentage_checkout))
+        station_file = open("supermarkt.txt", "a")
+        station_file.write("Simulationsende: " + str(timeFromStart) + "s\n")
+        station_file.write("Anzahl Kunden: " + str(count_C) + "\n")
+        station_file.write("Mittlere Einkaufsdauer: " + str(average) + "\n")
+        station_file.write("Anzahl vollständige Einkäufe: " + str(all_skipped) + "\n")
+        station_file.write("Drop percentage at Bäcker: " + str(percentage_baker) + "\n")
+        station_file.write("Drop percentage at Metzger: " + str(percentage_butcher) + "\n")
+        station_file.write("Drop percentage at Käse: " + str(percentage_cheese) + "\n")
+        station_file.write("Drop percentage at Kasse: " + str(percentage_checkout) + "\n")
+        station_file.close()
 
     # if customer arrives at store
     def arrive(self, timeFromStart, store_location, customer, station):
@@ -127,6 +188,16 @@ class eventOriented:
             if store_location < len(customer.taskOrder) - 1:
                 self.push((timeFromStart + customer.taskOrder[store_location + 1][0], 2, 'A' + str(store_location + 1), customer))
                 customer.save(timeFromStart, 'Skipping', station)
+                if (station.name == "Baecker"):
+                    self.drop_customer_baker += 1
+                elif (station.name == "Metzger"):
+                    self.drop_customer_butcher += 1
+                elif (station.name == "Käse"):
+                    self.drop_customer_cheese += 1
+                elif (station.name == "Kasse"):
+                    self.drop_customer_checkout += 1
+
+
         # user wants to get to store
         else:
             # write to txt
@@ -155,10 +226,14 @@ class eventOriented:
         if station.queue:
             queue_customer, store = station.queue.pop(0)
             station.save(timeFromStart, 'serving', queue_customer)
-            self.push((timeFromStart + queue_customer.taskOrder[store][2] * station.workTime, 1,'C' + str(store), queue_customer))
+            self.push((timeFromStart + queue_customer.taskOrder[store][2] * station.workTime, 1, 'C' + str(store),queue_customer))
         # if there are no customers waiting for this store
         else:
             station.working = False
+
+    def finish(self, kunde):
+        print(kunde)
+
 
 # starting the shopping event
 if __name__ == "__main__":
