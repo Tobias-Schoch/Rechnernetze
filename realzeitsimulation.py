@@ -31,7 +31,7 @@ class Station(Thread):
                 serve = customer2.actual_todo.purchase * self.dauer
                 print(str(datetime.datetime.now()) + ": " + self.name + " serving customer " + str(
                     customer2.name) + " for " + str(serve) + " sec")
-                time.sleep(serve)
+                time.sleep(serve / 90)
                 customer2.get_served.set()
             self.get_arrived.clear()
             print(str(datetime.datetime.now()) + ": " + self.name + " has finished customer " + str(customer2.name))
@@ -62,7 +62,7 @@ class Customer(Thread):
             if (self.state == 0):
                 print(str(datetime.datetime.now()) + ": " + self.name + " is walking.")
                 self.state = 0
-                time.sleep(self.actual_todo.arrival)
+                time.sleep(self.actual_todo.arrival / 90)
             self.state = 1
             info_station = self.actual_todo.station
             info_station.lock.acquire()
@@ -103,10 +103,13 @@ class Todo2:
 get_stopped = Event()
 customer = []
 customer_lock = Lock()
+customer_count = 0
 
 
 def generate_customer(sleep_time, name, todo):
+    global customer_count
     a = 1
+    customer_count += 1
     while not get_stopped.is_set():
         k = Customer(str(name) + str(a), tuple(todo))
         k.start()
@@ -114,7 +117,7 @@ def generate_customer(sleep_time, name, todo):
         customer.append(k)
         customer_lock.release()
         a += 1
-        time.sleep(sleep_time)
+        time.sleep(sleep_time / 90)
 
 
 if __name__ == "__main__":
@@ -136,14 +139,19 @@ if __name__ == "__main__":
     generate_a.start()
     time.sleep(1)
     generate_b.start()
-    time.sleep(30)
+    time.sleep(10)
     timer_end = datetime.datetime.now()
     get_stopped.set()
 
     expire = timer_end - timer_start
-    customer4 = len(customer())
-    print("Simulationsende " + str(expire))
-    print("Anzahl Kunden" + str(len(customer)))
+    print("Simulationsende: " + str(expire))
+    print("Anzahl Kunden:  " + str(customer_count))
+
+    generate_a.join()
+    generate_b.join()
+
+    for c in customer:
+        c.join()
 
     baker.get_stopped.set()
     butcher.get_stopped.set()
