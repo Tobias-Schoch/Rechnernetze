@@ -12,6 +12,8 @@ class Station(Thread):
         self.name = name
         self.dauer = dauer
         self.stop = Event()
+        self.queue = []
+        self.working = False
 
     # def run(self):
     # while not
@@ -48,7 +50,7 @@ def generate_customer(sleep_time, name, todo):
         customer.append(k)
         customer_lock.release()
         a += 1
-        time.sleep(sleep_time / 10)
+        time.sleep(sleep_time / 30)
 
 
 stop = Event()
@@ -75,8 +77,9 @@ if __name__ == "__main__":
     generate_a.start()
     time.sleep(1)
     generate_b.start()
-    time.sleep(1)
+    time.sleep(60)
     stop.set()
+
 
     baker.stop.set()
     butcher.stop.set()
