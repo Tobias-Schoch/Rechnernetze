@@ -32,14 +32,13 @@ if __name__ == "__main__":
     start_new_thread(butcher)
     start_new_thread(cheese)
     start_new_thread(checkout)"""
-def sleeper(i):
-    print ("thread %d sleeps" %i)
-    time.sleep(5)
-    print ("thread %d woke up" % i)
 
+def baker1():
+    print("baker is sleeping")
+    time.sleep(300)
+    print("baker woke up")
+t = Thread(target= baker1)
+t.start()
 
-for i in range(10):
-    t = Thread(target=sleeper, args=(i,))
-    t.start()
 
 
