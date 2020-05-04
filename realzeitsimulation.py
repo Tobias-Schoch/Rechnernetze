@@ -31,7 +31,7 @@ class Station(Thread):
                 serve = customer2.actual_todo.purchase * self.dauer
                 print(str(datetime.datetime.now()) + ": " + self.name + " serving customer " + str(
                     customer2.name) + " for " + str(serve) + " sec")
-                time.sleep(serve / 90)
+                time.sleep(serve)
                 customer2.get_served.set()
             self.get_arrived.clear()
             print(str(datetime.datetime.now()) + ": " + self.name + " has finished customer " + str(customer2.name))
@@ -51,24 +51,36 @@ class Customer(Thread):
         self.get_served = Event()
         self.count_customer = 0
         self.time_s = datetime.datetime.now()
-        self.time_f = None
         self.counter = 0
         self.time_a = None
 
     def run(self):
+        global baker_count
+        global butcher_count
+        global checkout_count
+        global cheese_count
         self.counter += 1
         while self.actual_todo is not None:
             if (self.state == 0):
                 print(str(datetime.datetime.now()) + ": " + self.name + " is walking.")
                 self.state = 0
-                time.sleep(self.actual_todo.arrival / 90)
+                time.sleep(self.actual_todo.arrival)
             self.state = 1
             info_station = self.actual_todo.station
             info_station.lock.acquire()
             print(str(datetime.datetime.now()) + ": " + self.name + " is arrived at " + str(info_station.name))
             if len(info_station.queue) > self.actual_todo.queue_length:
                 info_station.lock.release()
+                print(str(datetime.datetime.now()) + ": " + self.name + " skipped the queue at " + str(info_station.name))
                 self.skipped_todo()
+                if (info_station.name == "Kasetheke"):
+                    cheese_count += 1
+                elif (info_station.name == "Kasse"):
+                    checkout_count += 1
+                elif (info_station.name == "Metzger"):
+                    butcher_count += 1
+                else:
+                    baker_count += 1
                 continue
             else:
                 info_station.queue.append(self)
@@ -103,15 +115,23 @@ get_stopped = Event()
 customer = []
 customer_lock = Lock()
 customer_count = 0
+butcher_count = 0
+cheese_count = 0
+checkout_count = 0
+baker_count = 0
 
-global time_f
-global time_t
-global time_s
-global time_z
+time_f = 0
+time_t = 0
+time_s = 0
+time_z = 0
 
 
 def generate_customer(sleep_time, name, todo):
     global customer_count
+    global time_f
+    global time_t
+    global time_s
+    global time_z
     a = 1
     while not get_stopped.is_set():
         customer_count += 1
@@ -122,22 +142,22 @@ def generate_customer(sleep_time, name, todo):
         customer.append(k)
         customer_lock.release()
         a += 1
-        time.sleep(sleep_time / 90)
+        time.sleep(sleep_time)
     time_t = datetime.datetime.now()
     time_f = (time_t-time_s)
-    time_z += time_f
+    time_z += time_f.total_seconds()
+
 
 
 
 
 if __name__ == "__main__":
-    baker = Station("Backer", 5)
-    butcher = Station("Metzger", 5)
-    cheese = Station("Kasetheke", 5)
+    baker = Station("Backer", 10)
+    butcher = Station("Metzger", 30)
+    cheese = Station("Kasetheke", 60)
     checkout = Station("Kasse", 5)
-    customer_a = [Todo2(baker, 1, 1, 1), Todo2(butcher, 3, 5, 1), Todo2(cheese, 1, 3, 1),
-                  Todo2(checkout, 1, 1, 1)]
-    customer_b = [Todo2(butcher, 1, 2, 1), Todo2(checkout, 1, 3, 1), Todo2(baker, 1, 3, 1)]
+    customer_a = [Todo2(baker, 10, 10, 10), Todo2(butcher, 30, 10, 5), Todo2(cheese, 45, 5, 3), Todo2(checkout, 60, 20, 30)]
+    customer_b = [Todo2(butcher, 30, 5, 2), Todo2(checkout, 30, 20, 3), Todo2(baker, 20, 20, 3)]
     generate_a = Thread(target=generate_customer, args=(200, "A", customer_a))
     generate_b = Thread(target=generate_customer, args=(60, "B", customer_b))
 
@@ -153,16 +173,27 @@ if __name__ == "__main__":
     timer_end = datetime.datetime.now()
     get_stopped.set()
 
-    expire = timer_end - timer_start
-    print("Simulationsende: " + str(expire))
-    print("Anzahl Kunden:  " + str(customer_count))
-    print(str(time_z.total_seconds() / customer_count))
-
     generate_a.join()
     generate_b.join()
 
-    for customer_count in customer:
-        customer_count.join()
+    for customer in customer:
+        customer.join()
+
+    expire = timer_end - timer_start
+    print("Simulationsende: " + str(expire))
+    print("Anzahl Kunden:  " + str(customer_count))
+    print("Mittlere Einkaufsdauer:  " + str(time_z / customer_count))
+
+    butcher_drop = 100 / customer_count * butcher_count
+    cheese_drop = 100 / customer_count * cheese_count
+    checkout_drop = 100 / customer_count * checkout_count
+    baker_drop = 100 / customer_count * baker_count
+    full_purchase = 100 - (100 / customer_count * (butcher_drop + cheese_drop + checkout_drop + baker_drop))
+    print("Anzahl vollstandige Einkaufe: " + str(full_purchase))
+    print("Butcher: " + str(butcher_drop))
+    print("Cheese: " + str(cheese_drop))
+    print("Checkout: " + str(checkout_drop))
+    print("Baker: " + str(baker_drop))
 
     baker.get_stopped.set()
     butcher.get_stopped.set()
