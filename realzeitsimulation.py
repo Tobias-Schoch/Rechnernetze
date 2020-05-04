@@ -13,30 +13,9 @@ class Station(Thread):
         self.stop = Event()
         self.queue = []
         self.working = False
-        self.is_busy = False
-        self.arrEv = Event()
-        self.servEv = Event()
-        self.killEv = Event()
-        self.lock = Lock()
-        self.FACTOR = 10
 
-    def run(self):
-        while not self.killEv.is_set():
-
-            # Wait for a customer
-            # Timeout to detect if the kill flag has been set
-            if self.arrEv.wait(10) is not True:
-                continue
-
-            self.is_busy = True
-            while len(self.queue) != 0:
-                customer = self.queue.pop(0)
-                serving_time = customer.current_task.amount * self.dauer
-                print(f"{self.name} serving customer {customer} for {serving_time} sec.")
-                time.sleep(serving_time // self.FACTOR)
-                customer.servEv.set()
-            self.is_busy = False
-            self.arrEv.clear()
+    #def run(self):
+        #while
 
 
 class Customer(Thread):
@@ -60,7 +39,7 @@ class Customer(Thread):
             station = self.actual_todo.station
             if len(station.queue) > self.actual_todo.queue_length:
                 continue
-            print(self.name + " is waiting at " + station)
+            print(self.name + " is waiting at " + str(station))
 
 
 
