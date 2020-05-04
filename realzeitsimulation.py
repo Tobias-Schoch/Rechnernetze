@@ -1,4 +1,5 @@
 from threading import Thread
+from _thread import start_new_thread
 import time
 from threading import Event
 from threading import Lock
@@ -27,7 +28,18 @@ if __name__ == "__main__":
     cheese = Store("Käsetheke", 60)
     checkout = Store("Kasse", 5)
 
-    baker.start()
-    butcher.start()
-    cheese.start()
-    checkout.start()
+    """start_new_thread(baker)
+    start_new_thread(butcher)
+    start_new_thread(cheese)
+    start_new_thread(checkout)"""
+def sleeper(i):
+    print ("thread %d sleeps" %i)
+    time.sleep(5)
+    print ("thread %d woke up" % i)
+
+
+for i in range(10):
+    t = Thread(target=sleeper, args=(i,))
+    t.start()
+
+
