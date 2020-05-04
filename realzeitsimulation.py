@@ -4,11 +4,10 @@ from threading import Event
 from threading import Lock
 import datetime
 
-class Station(Thread):
-    def __init__(self, name, dauer, length):
+class Store(Thread):
+    def __init__(self, name, dauer):
         self.name = name
         self.dauer = dauer
-        self.length = length
 
 class Customer(Thread):
     def __init__(self, name, todo):
@@ -22,3 +21,13 @@ class Customer(Thread):
 def generate_customer(sleep, name, todo):
     # TODO: generater customer
 
+if __name__ == "__main__":
+    baker = Store("Bäcker", 10)
+    butcher = Store("Metzger", 30)
+    cheese = Store("Käsetheke", 60)
+    checkout = Store("Kasse", 5)
+
+    baker.start()
+    butcher.start()
+    cheese.start()
+    checkout.start()
