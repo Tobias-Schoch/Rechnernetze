@@ -13,9 +13,9 @@ class Station(Thread):
         self.stop = Event()
         self.queue = []
         self.working = False
+        self.lock = Lock()
 
     #def run(self):
-        #while
 
 
 class Customer(Thread):
@@ -24,7 +24,7 @@ class Customer(Thread):
         self.name = name
         self.todo = list(todo)
         self.actual_todo = self.todo.pop(0)
-        self.skipped_todo = []
+        self.skip_todo = []
         # 0 = walking
         # 1 = at station
         self.state = 0
@@ -32,16 +32,30 @@ class Customer(Thread):
 
     def run(self):
         print(self.name + " is walking.")
-        time.sleep(self.actual_todo.arrival / 20)
+        time.sleep(self.actual_todo.arrival)
         while self.state == 0:
             print(self.name + " is arrived")
 
-            station = self.actual_todo.station
-            if len(station.queue) > self.actual_todo.queue_length:
+            info_station = self.actual_todo.station
+            info_station.lock.acquire()
+            if len(info_station.queue) > self.actual_todo.queue_length:
+                info_station.lock.release()
+                self.skipped_todo()
                 continue
-            print(self.name + " is waiting at " + str(station))
+            else:
+                info_station.queue.append(self)
+            print(self.name + " is waiting at " + str(info_station))
+            self.state = 1
 
+    def finished_todo(self):
+        if len(self.todo) == 0:
+            self.actual_todo = None
+        else:
+            self.actual_todo = self.todo.pop(0)
 
+    def skipped_todo(self):
+        self.skip_todo.append(self.actual_todo)
+        self.finished_todo()
 
 
 class Todo:
@@ -63,7 +77,6 @@ def generate_customer(sleep_time, name, todo):
         a += 1
         time.sleep(sleep_time)
 
-
 stop = Event()
 customer = []
 customer_lock = Lock()
@@ -73,8 +86,8 @@ if __name__ == "__main__":
     butcher = Station("Metzger", 30)
     cheese = Station("Kasetheke", 60)
     checkout = Station("Kasse", 5)
-    customer_a = [Todo(0, 10, 10, 10), Todo(1, 30, 5, 10), Todo(2, 45, 3, 5), Todo(3, 10, 30, 20)]
-    customer_b = [Todo(1, 30, 2, 5), Todo(3, 30, 3, 20), Todo(0, 20, 3, 20)]
+    customer_a = [Todo(baker, 10, 10, 10), Todo(butcher, 30, 5, 10), Todo(cheese, 45, 3, 5), Todo(checkout, 10, 30, 20)]
+    customer_b = [Todo(butcher, 30, 2, 5), Todo(checkout, 30, 3, 20), Todo(baker, 20, 3, 20)]
     generate_a = Thread(target=generate_customer, args=(200, "A", customer_a))
     generate_b = Thread(target=generate_customer, args=(60, "B", customer_b))
 
@@ -85,7 +98,7 @@ if __name__ == "__main__":
     generate_a.start()
     time.sleep(1)
     generate_b.start()
-    time.sleep(60)
+    time.sleep(20)
 
     stop.set()
     baker.stop.set()
