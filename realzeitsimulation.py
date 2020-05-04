@@ -69,12 +69,5 @@ if __name__ == "__main__":
     cheese.start()
     checkout.start()
 
-def baker1():
-    print("baker is sleeping")
-    time.sleep(300)
-    print("baker woke up")
-t = Thread(target = baker1)
-t.start()
-
 
 
