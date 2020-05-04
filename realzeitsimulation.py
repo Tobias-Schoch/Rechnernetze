@@ -109,7 +109,6 @@ customer_count = 0
 def generate_customer(sleep_time, name, todo):
     global customer_count
     a = 1
-    customer_count += 1
     while not get_stopped.is_set():
         k = Customer(str(name) + str(a), tuple(todo))
         k.start()
@@ -118,6 +117,8 @@ def generate_customer(sleep_time, name, todo):
         customer_lock.release()
         a += 1
         time.sleep(sleep_time / 90)
+        print(k)
+        customer_count += 1
 
 
 if __name__ == "__main__":
