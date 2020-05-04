@@ -3,16 +3,17 @@ from _thread import start_new_thread
 import time
 from threading import Event
 from threading import Lock
-import datetime
+from datetime import datetime
 
 class Station(Thread):
     def __init__(self, name, dauer):
+        Thread.__init__(self)
         self.name = name
         self.dauer = dauer
         self.stop = Event()
 
-    def run(self):
-        while not
+    #def run(self):
+        #while not
 
 class Customer(Thread):
     def __init__(self, name, todo):
@@ -21,11 +22,11 @@ class Customer(Thread):
         self.todo = list(todo)
         self.actual_todo = self.todo.pop(0)
         self.skipped_todo = []
-        self.start = datetime.datetime.now()
+        self.start = datetime.now()
         self.finish = 0
 
-    def run(self):
-        while not
+    #def run(self):
+        #while not
 
 class Todo:
     def __init__(self, station, arrival, max_queue, purchase):
@@ -37,16 +38,16 @@ class Todo:
 def generate_customer(sleep_time, name, todo):
     a = 1
     while not stop.is_set():
-        k = Customer(name + "" + a, tuple(todo))
+        k = Customer(str(name) + str(a), tuple(todo))
         k.start()
-        customer_save.acquire()
+        customer_lock.acquire()
         customer.append(k)
-        customer_save.release()
-        time.sleep(sleep_time / 10)
+        customer_lock.release()
         a += 1
 
+stop = Event()
 customer = []
-customer_save = Lock()
+customer_lock = Lock()
 
 if __name__ == "__main__":
     baker = Station("Backer", 10)
@@ -62,6 +63,7 @@ if __name__ == "__main__":
     generate_b = Thread(target = generate_customer, args = (60, "B", customer_b))
 
     generate_a.start()
+    time.sleep(1)
     generate_b.start()
 
     baker.start()
