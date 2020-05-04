@@ -5,6 +5,7 @@ from threading import Event
 from threading import Lock
 import datetime
 
+
 class Station(Thread):
     def __init__(self, name, dauer):
         Thread.__init__(self)
@@ -12,8 +13,9 @@ class Station(Thread):
         self.dauer = dauer
         self.stop = Event()
 
-    #def run(self):
-        #while not
+    # def run(self):
+    # while not
+
 
 class Customer(Thread):
     def __init__(self, name, todo):
@@ -24,8 +26,9 @@ class Customer(Thread):
         self.skipped_todo = []
         self.finish = 0
 
-    #def run(self):
-        #while not
+    # def run(self):
+    # while not
+
 
 class Todo:
     def __init__(self, station, arrival, max_queue, purchase):
@@ -33,6 +36,7 @@ class Todo:
         self.arrival = arrival
         self.max_queue = max_queue
         self.purchase = purchase
+
 
 def generate_customer(sleep_time, name, todo):
     a = 1
@@ -44,7 +48,8 @@ def generate_customer(sleep_time, name, todo):
         customer.append(k)
         customer_lock.release()
         a += 1
-        time.sleep(1)
+        time.sleep(sleep_time / 10)
+
 
 stop = Event()
 customer = []
@@ -61,25 +66,19 @@ if __name__ == "__main__":
     cheese.start()
     checkout.start()
 
-    customer_a = [Todo(0, 10, 10, 10), Todo(1, 30, 5, 10), Todo(2, 45, 3, 5),
-                   Todo(3, 10, 30, 20)]
+    customer_a = [Todo(0, 10, 10, 10), Todo(1, 30, 5, 10), Todo(2, 45, 3, 5), Todo(3, 10, 30, 20)]
     customer_b = [Todo(1, 30, 2, 5), Todo(3, 30, 3, 20), Todo(0, 20, 3, 20)]
 
-    generate_a = Thread(target = generate_customer, args = (200, "A", customer_a))
-    generate_b = Thread(target = generate_customer, args = (60, "B", customer_b))
+    generate_a = Thread(target=generate_customer, args=(200, "A", customer_a))
+    generate_b = Thread(target=generate_customer, args=(60, "B", customer_b))
 
     generate_a.start()
     time.sleep(1)
     generate_b.start()
-
+    time.sleep(1)
     stop.set()
 
     baker.stop.set()
     butcher.stop.set()
     cheese.stop.set()
     checkout.stop.set()
-
-
-
-
-
