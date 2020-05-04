@@ -12,7 +12,7 @@ class Store:
 
     # write in station file who get served at which time on which store
     def save(self, timeFromStart, activity, customer):
-        station_file = open("supermarkt_station.txt", "a")
+        station_file = open("supermarkt_station.txt", "w")
         station_file.write(str(timeFromStart) + ':' + self.name + ' ' + activity + ' customer ' + customer.name + '\n')
         station_file.close()
 
@@ -30,7 +30,7 @@ class Customer:
 
     # write in customer file what happens at which time
     def save(self, timeFromStart, activity, station):
-        customer_file = open("supermarkt_customer.txt", "a")
+        customer_file = open("supermarkt_customer.txt", "w")
         customer_file.write(str(timeFromStart) + ':' + self.name + ' ' + activity + ' at ' + station.name + '\n')
         customer_file.close()
 
@@ -171,7 +171,6 @@ class eventOriented:
         print("Drop percentage at Käse: " + str(percentage_cheese))
         print("Drop percentage at Kasse: " + str(percentage_checkout))
         station_file = open("supermarkt.txt", "w")
-        #station_file.truncate(0)
         station_file.write("Simulationsende: " + str(timeFromStart) + "s\n")
         station_file.write("Anzahl Kunden: " + str(count_C) + "\n")
         station_file.write("Mittlere Einkaufsdauer: " + str(average) + "\n")
