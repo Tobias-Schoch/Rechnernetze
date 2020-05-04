@@ -118,6 +118,8 @@ def generate_customer(sleep_time, name, todo):
         customer_lock.release()
         a += 1
         time.sleep(sleep_time / 90)
+        print(k)
+        customer_count += 1
 
 
 if __name__ == "__main__":
