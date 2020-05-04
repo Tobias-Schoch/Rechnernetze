@@ -107,7 +107,6 @@ customer_lock = Lock()
 
 def generate_customer(sleep_time, name, todo):
     a = 1
-    customer3 = customer.counter
     while not get_stopped.is_set():
         k = Customer(str(name) + str(a), tuple(todo))
         k.start()
@@ -142,9 +141,9 @@ if __name__ == "__main__":
     get_stopped.set()
 
     expire = timer_end - timer_start
-    customer4 = Customer.counter
-    print("Simulationsende" + str(expire))
-    print("Anzahl Kunden" + str())
+    customer4 = len(customer())
+    print("Simulationsende " + str(expire))
+    print("Anzahl Kunden" + str(len(customer)))
 
     baker.get_stopped.set()
     butcher.get_stopped.set()
