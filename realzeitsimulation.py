@@ -109,8 +109,8 @@ customer_count = 0
 def generate_customer(sleep_time, name, todo):
     global customer_count
     a = 1
-    customer_count += 1
     while not get_stopped.is_set():
+        customer_count += 1
         k = Customer(str(name) + str(a), tuple(todo))
         k.start()
         customer_lock.acquire()
@@ -150,8 +150,8 @@ if __name__ == "__main__":
     generate_a.join()
     generate_b.join()
 
-    for c in customer:
-        c.join()
+    for customer_count in customer:
+        customer_count.join()
 
     baker.get_stopped.set()
     butcher.get_stopped.set()
