@@ -26,10 +26,16 @@ class Customer(Thread):
         self.todo = list(todo)
         self.actual_todo = self.todo.pop(0)
         self.skipped_todo = []
+        # 0 = walking
+        # 1 = waiting
+        # 2 = served
+        self.state = 0
         self.finish = 0
 
-    # def run(self):
-    # while not
+    def run(self):
+        print(self.name + " is walking.")
+        while self.state == 0:
+
 
 
 class Todo:
@@ -45,7 +51,6 @@ def generate_customer(sleep_time, name, todo):
     while not stop.is_set():
         k = Customer(str(name) + str(a), tuple(todo))
         k.start()
-        print(k)
         customer_lock.acquire()
         customer.append(k)
         customer_lock.release()
