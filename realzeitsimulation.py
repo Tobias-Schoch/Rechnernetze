@@ -3,7 +3,7 @@ from _thread import start_new_thread
 import time
 from threading import Event
 from threading import Lock
-from datetime import datetime
+import datetime
 
 class Station(Thread):
     def __init__(self, name, dauer):
@@ -22,7 +22,6 @@ class Customer(Thread):
         self.todo = list(todo)
         self.actual_todo = self.todo.pop(0)
         self.skipped_todo = []
-        self.start = datetime.now()
         self.finish = 0
 
     #def run(self):
@@ -40,10 +39,12 @@ def generate_customer(sleep_time, name, todo):
     while not stop.is_set():
         k = Customer(str(name) + str(a), tuple(todo))
         k.start()
+        print(k)
         customer_lock.acquire()
         customer.append(k)
         customer_lock.release()
         a += 1
+        time.sleep(1)
 
 stop = Event()
 customer = []
@@ -54,6 +55,11 @@ if __name__ == "__main__":
     butcher = Station("Metzger", 30)
     cheese = Station("Kasetheke", 60)
     checkout = Station("Kasse", 5)
+
+    baker.start()
+    butcher.start()
+    cheese.start()
+    checkout.start()
 
     customer_a = [Todo(0, 10, 10, 10), Todo(1, 30, 5, 10), Todo(2, 45, 3, 5),
                    Todo(3, 10, 30, 20)]
@@ -66,10 +72,14 @@ if __name__ == "__main__":
     time.sleep(1)
     generate_b.start()
 
-    baker.start()
-    butcher.start()
-    cheese.start()
-    checkout.start()
+    stop.set()
+
+    baker.stop.set()
+    butcher.stop.set()
+    cheese.stop.set()
+    checkout.stop.set()
+
+
 
 
 
