@@ -46,8 +46,6 @@ class Customer(Thread):
         self.todo = list(todo)
         self.actual_todo = self.todo.pop(0)
         self.skip_todo = []
-        # 0 = walking
-        # 1 = at station
         self.state = 0
         self.finish = 0
         self.get_served = Event()
@@ -55,6 +53,7 @@ class Customer(Thread):
         self.time_s = datetime.datetime.now()
         self.time_f = None
         self.counter = 0
+        self.time_a = None
 
     def run(self):
         self.counter += 1
@@ -105,12 +104,18 @@ customer = []
 customer_lock = Lock()
 customer_count = 0
 
+global time_f
+global time_t
+global time_s
+global time_z
+
 
 def generate_customer(sleep_time, name, todo):
     global customer_count
     a = 1
     while not get_stopped.is_set():
         customer_count += 1
+        time_s = datetime.datetime.now()
         k = Customer(str(name) + str(a), tuple(todo))
         k.start()
         customer_lock.acquire()
@@ -118,7 +123,11 @@ def generate_customer(sleep_time, name, todo):
         customer_lock.release()
         a += 1
         time.sleep(sleep_time / 90)
-        #print(k)
+    time_t = datetime.datetime.now()
+    time_f = (time_t-time_s)
+    time_z += time_f
+
+
 
 
 if __name__ == "__main__":
@@ -147,6 +156,7 @@ if __name__ == "__main__":
     expire = timer_end - timer_start
     print("Simulationsende: " + str(expire))
     print("Anzahl Kunden:  " + str(customer_count))
+    print(str(time_z.total_seconds() / customer_count))
 
     generate_a.join()
     generate_b.join()
