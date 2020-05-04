@@ -5,6 +5,10 @@ from threading import Lock
 import datetime
 
 class Station(Thread):
+    def __init__(self, name, dauer, length):
+        self.name = name
+        self.dauer = dauer
+        self.length = length
 
 class Customer(Thread):
     def __init__(self, name, todo):
