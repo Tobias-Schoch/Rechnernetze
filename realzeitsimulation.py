@@ -31,7 +31,7 @@ class Station(Thread):
                 serve = customer2.actual_todo.purchase * self.dauer
                 print(str(datetime.datetime.now()) + ": " + self.name + " serving customer " + str(
                     customer2.name) + " for " + str(serve) + " sec")
-                time.sleep(serve / 120)
+                time.sleep(serve)
                 customer2.get_served.set()
             self.get_arrived.clear()
             print(str(datetime.datetime.now()) + ": " + self.name + " has finished customer " + str(customer2.name))
@@ -69,7 +69,7 @@ class Customer(Thread):
             if (self.state == 0):
                 print(str(datetime.datetime.now()) + ": " + self.name + " is walking.")
                 self.state = 0
-                time.sleep(self.actual_todo.arrival / 120)
+                time.sleep(self.actual_todo.arrival)
             self.state = 1
             info_station = self.actual_todo.station
             info_station.lock.acquire()
@@ -156,7 +156,7 @@ def generate_customer(sleep_time, name, todo):
         customer.append(k)
         customer_lock.release()
         a += 1
-        time.sleep(sleep_time / 120)
+        time.sleep(sleep_time)
 
 
 
@@ -177,9 +177,9 @@ if __name__ == "__main__":
     checkout.start()
     timer_start = datetime.datetime.now()
     generate_a.start()
-    time.sleep(1 / 120)
+    time.sleep(1)
     generate_b.start()
-    time.sleep(1800 / 120)
+    time.sleep(1800)
     timer_end = datetime.datetime.now()
     get_stopped.set()
 
