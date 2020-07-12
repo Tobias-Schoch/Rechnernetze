@@ -5,7 +5,6 @@ import pickle
 import sys
 import time
 
-
 host = gethostbyname(gethostname())
 port = 54302
 sock = socket(AF_INET, SOCK_STREAM)
@@ -16,7 +15,6 @@ user = input("Enter username:")
 ip2 = ["192.168.2.101"]
 otheruser = []
 thread = True
-
 
 
 class message:
@@ -31,10 +29,6 @@ class join:
 
     def __init__(self, name):
         self.name = name
-
-
-class exit:
-    exit = "has left the chat"
 
 
 class Buddy:
@@ -187,9 +181,8 @@ while True:
             send_message(message(msg), b.conn)
     elif text == "q":
         for b in otheruser:
-            send_message(exit(), b.conn)
+            send_message("has left the chat", b.conn)
             b.conn.close()
 
         thread = False
         break
-
