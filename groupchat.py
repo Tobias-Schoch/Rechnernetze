@@ -5,19 +5,20 @@ import pickle
 import sys
 import time
 
+
 host = gethostbyname(gethostname())
 port = 54302
 sock = socket(AF_INET, SOCK_STREAM)
 sock.bind((host, port))
 sock.listen(10)
-
 user = input("Enter username:")
+
 ip2 = ["192.168.2.101"]
 otheruser = []
 thread = True
 
 
-class message:
+class exec_message:
     msg = ""
 
     def __init__(self, msg):
@@ -41,7 +42,6 @@ class Buddy:
         """Override the default Equals behavior"""
         return self.name == other.name and self.addr == other.addr
 
-
 def user_join(name, conn, addr):
     i = Buddy(name, conn, addr)
     if i not in otheruser:
@@ -53,32 +53,32 @@ def user_join(name, conn, addr):
         print(str(i.name) + " connected.")
 
 
-def send_message(packet, conn):
-    packet = pickle.dumps(packet)
-    length = struct.pack('!I', len(packet))
-    packet = length + packet
-    conn.send(packet)
-
-
 def user_message(msg, conn):
-    name = ""
-    for i in otheruser:
-        if i.conn == conn:
-            name = i.name
+    name = "n.a."
+    for b in otheruser:
+        if b.conn == conn:
+            name = b.name
     print(str(name) + ": " + str(msg))
 
 
 def user_exit(conn):
-    j = 0
-    for i in otheruser:
-        if i.conn == conn:
-            i.conn.close()
-            del otheruser[j]
+    i = 0
+    for b in otheruser:
+        if b.conn == conn:
+            b.conn.close()
+            del otheruser[i]
             break
-        j += 1
+        i += 1
 
 
-def connection(conn, addr):
+def listen():
+    while thread:
+        (conn, addr) = sock.accept()
+        start_new_thread(handle_connection, (conn, addr))
+    sock.close()
+
+
+def handle_connection(conn, addr):
     while thread:
         buf = b''
         while len(buf) < 4:
@@ -87,19 +87,20 @@ def connection(conn, addr):
                 buf += conn.recv(4 - len(buf))
             except WindowsError:
                 pass
-        print("received Message")
+        print("recv Message")
         length = struct.unpack('!I', buf)[0]
 
-        message_text = conn.recv(length)
-        message_text = pickle.loads(message_text)
+        text = conn.recv(length)
+
+        text = pickle.loads(text)
         if type(text) is join:
             user_join(text.name, conn, addr)
         elif type(text) is exit:
             user_exit(conn)
-        elif type(text) is message_text:
+        elif type(text) is exec_message:
             user_message(text.msg, conn)
         else:
-            print("received message is not valid")
+            print("recv message is not valid")
 
 
 def scan_open():
@@ -145,43 +146,43 @@ def send_join(packet, addr):
             print(str(i.name) + " connected.")
 
 
-def listen():
-    while thread:
-        (conn, addr) = sock.accept()
-        start_new_thread(connection, (conn, addr))
-    sock.close()
+def send(packet, conn):
+    packet = pickle.dumps(packet)
+    length = struct.pack('!I', len(packet))
+    packet = length + packet
+    conn.send(packet)
 
 
 start_new_thread(listen, ())
 
 while True:
-    text = input("type h for help")
-    if text == "h":
+    command = input("type h for help")
+    if command == "h":
         print("s - Scan")
         print("l - andere User anzeigen")
         print("m - Nachricht senden")
         print("g - Nachricht an alle senden")
         print("q - Programm beenden")
-    elif text == "s":
+    elif command == "s":
         scan_open()
-    elif text == "l":
+    elif command == "l":
         for b in otheruser:
             print(str(b.name) + " ist verbunden über: " + str(b.addr) + "")
-    elif text == "m":
-        toWhichNickname = input("An wenn willst du eine Nachricht senden?")
+    elif command == "m":
+        receiver = input("An wenn willst du eine Nachricht senden?")
         for b in otheruser:
-            if toWhichNickname == b.name:
+            if receiver == b.name:
                 msg = input("Nachricht:")
-                send_message(message(msg), b.conn)
+                send(exec_message(msg), b.conn)
                 break
-    elif text == "g":
+    elif command == "g":
         print("Nachricht an alle Senden")
         msg = input("Nachricht:")
         for b in otheruser:
-            send_message(message(msg), b.conn)
-    elif text == "q":
+            send(exec_message(msg), b.conn)
+    elif command == "q":
         for b in otheruser:
-            send_message("has left the chat", b.conn)
+            send("has left the chat", b.conn)
             b.conn.close()
 
         thread = False
