@@ -63,13 +63,13 @@ def user_message(msg, conn):
 
 
 def user_exit(conn):
-    i = 0
-    for b in otheruser:
-        if b.conn == conn:
-            b.conn.close()
-            del otheruser[i]
+    j = 0
+    for i in otheruser:
+        if i.conn == conn:
+            i.conn.close()
+            del otheruser[j]
             break
-        i += 1
+        j += 1
 
 
 def listen():
@@ -90,17 +90,17 @@ def handle_connection(conn, addr):
                 pass
         length = struct.unpack('!I', buf)[0]
 
-        text = conn.recv(length)
+        transmit = conn.recv(length)
 
-        text = pickle.loads(text)
-        if type(text) is join:
-            user_join(text.name, conn, addr)
-        elif type(text) is exit:
+        transmit = pickle.loads(transmit)
+        if type(transmit) is join:
+            user_join(transmit.name, conn, addr)
+        elif type(transmit) is exit:
             user_exit(conn)
-        elif type(text) is exec_message:
-            user_message(text.msg, conn)
+        elif type(transmit) is exec_message:
+            user_message(transmit.msg, conn)
         else:
-            print(text)
+            print(transmit)
 
 
 def connect_port():
@@ -136,12 +136,12 @@ def send_join(packet, addr):
                 pass
         length = struct.unpack('!I', buf)[0]
 
-        text = sock_remote.recv(length)
+        transmit = sock_remote.recv(length)
 
-        text = pickle.loads(text)
+        transmit = pickle.loads(transmit)
 
-        if type(text) is join:
-            i = Buddy(text.name, sock_remote, addr)
+        if type(transmit) is join:
+            i = Buddy(transmit.name, sock_remote, addr)
             otheruser.append(i)
 
 
@@ -169,25 +169,25 @@ while True:
     elif command == "s":
         connect_port()
     elif command == "l":
-        for b in otheruser:
-            if (b.name != user):
-                print(str(b.name) + " ist verbunden über: " + str(b.addr) + "")
+        for i in otheruser:
+            if (i.name != user):
+                print(str(i.name) + " ist verbunden über: " + str(i.addr) + "")
     elif command == "m":
-        receiver = input("An wenn willst du eine Nachricht senden?")
-        for b in otheruser:
-            if receiver == b.name:
+        receiver = input("An wen willst du eine Nachricht senden?")
+        for i in otheruser:
+            if receiver == i.name:
                 msg = input("Nachricht:")
-                send(exec_message(msg), b.conn)
+                send(exec_message(msg), i.conn)
                 break
     elif command == "g":
         print("Nachricht an alle Senden")
         msg = input("Nachricht:")
-        for b in otheruser:
-            send(exec_message(msg), b.conn)
+        for i in otheruser:
+            send(exec_message(msg), i.conn)
     elif command == "q":
-        for b in otheruser:
-            send(user + " hat den Chat verlassen", b.conn)
-            b.conn.close()
+        for i in otheruser:
+            send(user + " hat den Chat verlassen", i.conn)
+            i.conn.close()
 
         thread = False
         break
