@@ -5,13 +5,13 @@ import pickle
 import sys
 import time
 
-
 host = gethostbyname(gethostname())
 port = 54302
 sock = socket(AF_INET, SOCK_STREAM)
 sock.bind((host, port))
 sock.listen(10)
 user = input("Enter username:")
+count = 0
 
 ip2 = ["192.168.2.101"]
 otheruser = []
@@ -42,6 +42,7 @@ class Buddy:
         """Override the default Equals behavior"""
         return self.name == other.name and self.addr == other.addr
 
+
 def user_join(name, conn, addr):
     i = Buddy(name, conn, addr)
     if i not in otheruser:
@@ -50,14 +51,14 @@ def user_join(name, conn, addr):
         length = struct.pack('!I', len(packet))
         packet = length + packet
         conn.send(packet)
-        print(str(i.name) + " connected.")
+    print(str(i.name) + " verbunden")
 
 
 def user_message(msg, conn):
-    name = "n.a."
-    for b in otheruser:
-        if b.conn == conn:
-            name = b.name
+    name = ""
+    for i in otheruser:
+        if i.conn == conn:
+            name = i.name
     print(str(name) + ": " + str(msg))
 
 
@@ -87,7 +88,6 @@ def handle_connection(conn, addr):
                 buf += conn.recv(4 - len(buf))
             except WindowsError:
                 pass
-        print("recv Message")
         length = struct.unpack('!I', buf)[0]
 
         text = conn.recv(length)
@@ -100,10 +100,10 @@ def handle_connection(conn, addr):
         elif type(text) is exec_message:
             user_message(text.msg, conn)
         else:
-            print("recv message is not valid")
+            print(text)
 
 
-def scan_open():
+def connect_port():
     try:
         for ip in ip2:
             scan_sock = socket(AF_INET, SOCK_STREAM)
@@ -143,7 +143,6 @@ def send_join(packet, addr):
         if type(text) is join:
             i = Buddy(text.name, sock_remote, addr)
             otheruser.append(i)
-            print(str(i.name) + " connected.")
 
 
 def send(packet, conn):
@@ -156,18 +155,23 @@ def send(packet, conn):
 start_new_thread(listen, ())
 
 while True:
-    command = input("type h for help")
+    count += 1
+    if (count < 2):
+        command = input("type h for help")
+    else:
+        command = input()
     if command == "h":
-        print("s - Scan")
+        print("s - Verbinden")
         print("l - andere User anzeigen")
         print("m - Nachricht senden")
         print("g - Nachricht an alle senden")
         print("q - Programm beenden")
     elif command == "s":
-        scan_open()
+        connect_port()
     elif command == "l":
         for b in otheruser:
-            print(str(b.name) + " ist verbunden über: " + str(b.addr) + "")
+            if (b.name != user):
+                print(str(b.name) + " ist verbunden über: " + str(b.addr) + "")
     elif command == "m":
         receiver = input("An wenn willst du eine Nachricht senden?")
         for b in otheruser:
@@ -182,7 +186,7 @@ while True:
             send(exec_message(msg), b.conn)
     elif command == "q":
         for b in otheruser:
-            send("has left the chat", b.conn)
+            send(user + " hat den Chat verlassen", b.conn)
             b.conn.close()
 
         thread = False
